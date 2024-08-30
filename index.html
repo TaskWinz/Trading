@@ -63,18 +63,16 @@
             margin-bottom: 10px;
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
         }
-        .chart::before {
-            content: "";
-            position: absolute;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(to right, #32cd32, #ff0000);
-            animation: moveChart 5s linear infinite;
+        .chart.up {
+            color: green;
         }
-        @keyframes moveChart {
-            0% { left: -100%; }
-            100% { left: 0; }
+        .chart.down {
+            color: red;
         }
         .buttons {
             display: flex;
@@ -110,7 +108,7 @@
         <button onclick="showComingSoon()">Withdraw</button>
         <div class="game-container">
             <h3>BTC/USDT</h3>
-            <div class="chart"></div>
+            <div class="chart" id="chart">📈</div>
             <input type="number" id="bet-amount" placeholder="Enter Amount" min="1" required>
             <div class="buttons">
                 <button style="background-color: #32cd32;" onclick="playGame('CALL')">CALL</button>
@@ -191,10 +189,20 @@
             localStorage.setItem(currentUser, JSON.stringify(user));
             document.getElementById('balance').textContent = user.balance;
 
-            // Fake chart movement for 1 minute (60 seconds)
+            // Fake chart movement logic
+            const chart = document.getElementById('chart');
+            let moves = ['📈', '📉', '📈', '📉', '📈'];
+            let currentMove = 0;
+            const interval = setInterval(() => {
+                chart.textContent = moves[currentMove];
+                currentMove = (currentMove + 1) % moves.length;
+            }, 500);
+
+            // Determine win or lose after 1 minute
             setTimeout(() => {
+                clearInterval(interval);
                 const outcome = Math.random() < 0.5 ? 'WIN' : 'LOSE';
-                if (outcome === 'WIN') {
+                if (outcome === 'WIN' && type === 'CALL' || outcome === 'LOSE' && type === 'PUT') {
                     user.balance += betAmount * 2; // Double the amount on win
                     alert('Congratulations, you won!');
                 } else {
