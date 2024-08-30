@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .link {
+            text-align: center;
+            margin-top: 10px;
+            cursor: pointer;
+            color: #007bff;
+        }
+        .game-container {
+            margin-top: 20px;
+        }
+        .chart {
+            width: 100%;
+            height: 200px;
+            background-color: #e6e6e6;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .chart::before {
+            content: "";
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(to right, #32cd32, #ff0000);
+            animation: moveChart 5s linear infinite;
+        }
+        @keyframes moveChart {
+            0% { left: -100%; }
+            100% { left: 0; }
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .buttons button {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="login-container">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <div class="link" onclick="showRegister()">Don't have an account? Register</div>
+    </div>
+
+    <div class="container" id="register-container" style="display:none;">
+        <h2>Register</h2>
+        <input type="text" id="register-username" placeholder="Username" required>
+        <input type="password" id="register-password" placeholder="Password" required>
+        <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+        <button onclick="register()">Register</button>
+        <div class="link" onclick="showLogin()">Already have an account? Login</div>
+    </div>
+
+    <div class="container" id="game-container" style="display:none;">
+        <h2>Welcome, <span id="user-name"></span></h2>
+        <p>Balance: ₹<span id="balance">10000</span></p>
+        <button onclick="showComingSoon()">Deposit</button>
+        <button onclick="showComingSoon()">Withdraw</button>
+        <div class="game-container">
+            <h3>BTC/USDT</h3>
+            <div class="chart"></div>
+            <input type="number" id="bet-amount" placeholder="Enter Amount" min="1" required>
+            <div class="buttons">
+                <button style="background-color: #32cd32;" onclick="playGame('CALL')">CALL</button>
+                <button style="background-color: #ff0000;" onclick="playGame('PUT')">PUT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLogin() {
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        }
+
+        function showRegister() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'block';
+        }
+
+        function showGame() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+        }
+
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const storedUser = JSON.parse(localStorage.getItem(username));
+
+            if (storedUser && storedUser.password === password) {
+                localStorage.setItem('currentUser', username);
+                document.getElementById('user-name').textContent = username;
+                document.getElementById('balance').textContent = storedUser.balance;
+                showGame();
+            } else {
+                alert('Incorrect username or password');
+            }
+        }
+
+        function register() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+
+            const user = {
+                username: username,
+                password: password,
+                balance: 10000 // Signup bonus
+            };
+
+            localStorage.setItem(username, JSON.stringify(user));
+            alert('Registration successful');
+            showLogin();
+        }
+
+        function showComingSoon() {
+            alert('This feature is coming soon');
+        }
+
+        function playGame(type) {
+            const currentUser = localStorage.getItem('currentUser');
+            const user = JSON.parse(localStorage.getItem(currentUser));
+            const betAmount = parseInt(document.getElementById('bet-amount').value);
+
+            if (betAmount > user.balance) {
+                alert('Insufficient balance');
+                return;
+            }
+
+            // Deduct amount and save it
+            user.balance -= betAmount;
+            localStorage.setItem(currentUser, JSON.stringify(user));
+            document.getElementById('balance').textContent = user.balance;
+
+            // Fake chart movement for 1 minute (60 seconds)
+            setTimeout(() => {
+                const outcome = Math.random() < 0.5 ? 'WIN' : 'LOSE';
+                if (outcome === 'WIN') {
+                    user.balance += betAmount * 2; // Double the amount on win
+                    alert('Congratulations, you won!');
+                } else {
+                    alert('You lost!');
+                }
+                localStorage.setItem(currentUser, JSON.stringify(user));
+                document.getElementById('balance').textContent = user.balance;
+            }, 60000);
+        }
+    </script>
+</body>
+</html>
